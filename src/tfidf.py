@@ -1,10 +1,8 @@
-import os
-from pydoc import doc
-import re
 from nltk.stem import WordNetLemmatizer
 import json
 from pathlib import Path
 import math
+import heapq
 
 # Builds and Stores Term frequency index, Inverse document index and tfidf index from Collection of Documents
 class TFIDF:
@@ -14,16 +12,27 @@ class TFIDF:
         self.tf_index = {}          # term frequency index
         self.idf_index = {}         # inverse document frequency index
         self.tfidf_index = {}       # tfidf index
+        self.vocablary = {}
+        self.features = {}
+        self.topfeatures = {}
 
         self.noOfDocs = 0
 
         self.DataDir = str(Path(__file__).parent.resolve()).replace("src", "data")  # Folder to Store Indexes
         
         self.documents = self.ReadFromDisk('documents')
+        # self.documents = self.ReadFromDisk('doc')
+
+        self.BuildTfIndex()
+        self.length_normalization()
+        self.BuildIdfIndex()
+        self.BuildTfIdfIndex()
+        self.getTopKFeatures()
+        self.topKFeatures()
 
     # calculates term frequency for each unique term in each document.
-    # tf_index = {doc1 : { t1 : 3, t2: 4, ... ,tn: 5}, doc1 : { t1 : 2, t2: 1, ... ,tn: 4}, ... , docN : { t1 : 1, t2: 4, ... ,tn: 2} )  
-    
+    # tf_index = {doc1 : { t1 : 3, t2: 4, ... ,tn: 5}, doc1 : { t1 : 2, t2: 1, ... ,tn: 4}, ... , docN : { t1 : 1, t2: 4, ... ,tn: 2} )   
+
     def BuildTfIndex(self):
 
         # files are not read from directory in sorted order, so reading files of a directory and sorting their names
@@ -31,25 +40,41 @@ class TFIDF:
 
         docNo = 0
 
+        print(len(self.documents.keys()))
+        
         for key in self.documents.keys():
 
             text_words = self.documents[key]
 
             for word in text_words:
+                if not word.isdigit():
+                    if docNo not in self.tf_index.keys():
+                        self.tf_index[docNo] = {}               # adding term in a particular document
 
-                if docNo not in self.tf_index.keys():
-                    self.tf_index[docNo] = {}               # adding term in a particular document
+                    if word not in self.tf_index[docNo].keys():
+                        self.tf_index[docNo][word] = 1          # initializing frequency count for a term
+                    else:
+                        self.tf_index[docNo][word] += 1         # incrementing frequency count for a term
 
-                if word not in self.tf_index[docNo].keys():
-                    self.tf_index[docNo][word] = 1          # initializing frequency count for a term
-                else:
-                    self.tf_index[docNo][word] += 1         # incrementing frequency count for a term
+                    # Vocablary => term : term frequency
+
+                    if word not in self.vocablary.keys():
+                        self.vocablary[word] = 1
+                    else:
+                        self.vocablary[word] += 1
 
             docNo += 1
 
         self.noOfDocs = docNo
 
-        # self.WriteToDisk(self.tf_index,'tf_index')
+        print(self.noOfDocs)
+
+        self.WriteToDisk(self.vocablary,'vocablary')
+
+        self.WriteToDisk(self.tf_index,'tf_index')
+
+        print(len(self.vocablary.keys()))
+
 
     # Euclidean Normalization Vector / Magnitude of Vector => V / || V ||
     
@@ -102,13 +127,47 @@ class TFIDF:
 
             for key in self.tf_index[i].keys():
 
-                tf = math.log10(1+self.tf_index[i][key])    # tf = log10(1+tf)
+                tf = (self.tf_index[i][key] / self.magnitude[i])    # length normalizing term frequency vector 
                 idf = self.idf_index[key]
                 self.tfidf_index[str(i)][key] = tf * idf            # tfidf = tf * log(N/df)
 
         self.WriteToDisk(self.tfidf_index,'tfidf_index')
 
+
     # writing specified index to disk
+    def getTopKFeatures(self,k=100):
+
+        for i in range(self.noOfDocs):
+            
+            self.features[i] = heapq.nlargest(k, self.tfidf_index[str(i)], key=self.tfidf_index[str(i)].get)
+
+        self.WriteToDisk(self.features,'tfidf_topKFeatures')
+
+    
+    def topKFeatures(self, k=100):
+        
+        tfidf_sum = {}
+
+        print(len(self.vocablary.keys()))
+
+        for key in self.vocablary.keys():
+            
+            tfidf_sum[key] = 0
+
+            for i in self.tfidf_index.keys():
+                
+                if key in self.tfidf_index[i].keys():
+
+                    tfidf_sum[key] += self.tfidf_index[i][key]
+        
+        print(len(tfidf_sum.keys()))
+            
+        self.topfeatures = heapq.nlargest(k, tfidf_sum, key=tfidf_sum.get)
+
+        print(len(self.topfeatures))
+
+        self.WriteToDisk(self.topfeatures,"topKFeatures")
+
 
     def WriteToDisk(self, index, indexType):
         filename = "\\" + indexType + ".txt"
@@ -126,6 +185,3 @@ class TFIDF:
 
 
 t = TFIDF()
-t.BuildTfIndex()
-t.BuildIdfIndex()
-t.BuildTfIdfIndex()

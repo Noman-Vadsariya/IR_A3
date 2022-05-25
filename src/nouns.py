@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import json
 import heapq
+import re
 
 import gensim
 import gensim.corpora as corpora
@@ -22,7 +23,7 @@ class TopicTerms:
         self.extractTopicSets()
 
         self.WriteToDisk(self.nouns, "topKNouns")
-        self.WriteToDisk(self.lda_model.print_topics(), "kTopicSets")
+        self.WriteToDisk(self.twords, "kTopicSets")
 
     def POS_tagging(self):
         
@@ -57,7 +58,17 @@ class TopicTerms:
         self.lda_model = gensim.models.ldamodel.LdaModel(
             corpus=corpus, num_topics=10, id2word=id2word, passes=10
         )
-        print(self.lda_model.print_topics())
+
+        x=self.lda_model.show_topics()
+
+        self.twords={}
+        for topic,word in x:
+            line = re.sub('[^A-Za-z ]+', '', word)
+            self.twords[topic] = line.split('  ')
+            
+        
+        print(self.twords)
+
 
     def WriteToDisk(self, index, indexType):
         filename = "\\" + indexType + ".txt"

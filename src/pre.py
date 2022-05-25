@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import json
 import re
+from matplotlib.pyplot import cla
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
@@ -16,7 +17,6 @@ class Preprocessor:
         self.dataDir = str(Path(__file__).parent.resolve()).replace("src", "data")
         self.loadStopwords()
 
-
     def loadStopwords(self):
         self.stop_words = set(stopwords.words('english'))
 
@@ -28,12 +28,12 @@ class Preprocessor:
         text = text.split()                   # splitting on space
         return text
 
-    def StopwordsRemoval(self,tokens):
+    def remove_number_stopwords(self,tokens):
         
         filtered_sentence = []
 
         for w in tokens:
-            if w not in self.stop_words:
+            if (w not in self.stop_words) and w.isalpha():
                 filtered_sentence.append(self.Lemmatization(w))
 
         return filtered_sentence
@@ -48,7 +48,7 @@ class Preprocessor:
     def PreprocessText(self,text):
 
         tokens = self.tokenize(text)
-        tokens = self.StopwordsRemoval(tokens)
+        tokens = self.remove_number_stopwords(tokens)
         return tokens
         
         
@@ -57,6 +57,7 @@ class Preprocessor:
         collectionDir = str(Path(__file__).parent.resolve()).replace("src", "course-cotrain-data")
 
         print(collectionDir)
+        
         i = 0
 
         for folder in folderNames:
@@ -65,31 +66,39 @@ class Preprocessor:
 
             print(temp)
 
+            _class = temp.rpartition('\\')[-1]
+
+            print(_class)
+
+            self.dictionary[_class] = {}
+
             for filename in os.listdir(temp):
-            
-                if filename.endswith('.html') or filename.endswith('.edu'):
-                    
-                    fname = os.path.join(temp, filename)
-                    # print("Current file name ..", os.path.abspath(fname))
-                    
-                    with open(fname, 'r') as file:
-                        
-                        contents = file.read()
-
-                        soup = BeautifulSoup(contents, 'lxml')
-
-                        for script in soup(["script", "style"]):
-                            script.decompose()
-
-                        text = list(soup.stripped_strings)
-                        text = ' '.join(text)
-                        
-                        text = self.PreprocessText(text)
-
-                        self.dictionary[i] = filename
-                        self.documents[i] = text
                 
-                i+=1
+                # if filename.endswith('.html') or filename.endswith('.edu'):
+                    
+                fname = os.path.join(temp, filename)
+                # print("Current file name ..", os.path.abspath(fname))
+                
+                with open(fname, 'r') as file:
+                    
+                    contents = file.read()
+
+                    soup = BeautifulSoup(contents, 'lxml')
+
+                    for script in soup(["script", "style"]):
+                        script.decompose()
+
+                    text = list(soup.stripped_strings)
+                    text = ' '.join(text)
+                    
+                    text = self.PreprocessText(text)
+
+                    self.dictionary[_class][i] = filename
+                    self.documents[i] = text
+
+                    file.close()
+            
+                    i+=1
 
         # print(self.documents)
         self.WriteToDisk(self.dictionary,'dictionary')
