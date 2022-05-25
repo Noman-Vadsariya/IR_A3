@@ -19,7 +19,7 @@ class LexicalChain:
     def __init__(self):
 
         self.dataDir = str(Path(__file__).parent.resolve()).replace("src", "data")
-        self.documents = self.ReadFromDisk("documents")
+        self.documents = self.ReadFromDisk("train_data")
         self.chains = {}
         self.nouns = []
 

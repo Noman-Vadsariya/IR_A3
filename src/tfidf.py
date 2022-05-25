@@ -20,14 +20,15 @@ class TFIDF:
 
         self.DataDir = str(Path(__file__).parent.resolve()).replace("src", "data")  # Folder to Store Indexes
         
-        self.documents = self.ReadFromDisk('documents')
+        self.documents = self.ReadFromDisk('train_data')
+        # self.documents = self.ReadFromDisk('documents')
         # self.documents = self.ReadFromDisk('doc')
 
         self.BuildTfIndex()
         self.length_normalization()
         self.BuildIdfIndex()
         self.BuildTfIdfIndex()
-        self.getTopKFeatures()
+        # self.getTopKFeatures()
         self.topKFeatures()
 
     # calculates term frequency for each unique term in each document.
@@ -47,14 +48,20 @@ class TFIDF:
             text_words = self.documents[key]
 
             for word in text_words:
+                
                 if not word.isdigit():
-                    if docNo not in self.tf_index.keys():
-                        self.tf_index[docNo] = {}               # adding term in a particular document
+                    
+                    if key not in self.tf_index.keys():
+                        
+                        self.tf_index[key] = {}               # adding term in a particular document
 
-                    if word not in self.tf_index[docNo].keys():
-                        self.tf_index[docNo][word] = 1          # initializing frequency count for a term
+                    if word not in self.tf_index[key].keys():
+
+                        self.tf_index[key][word] = 1          # initializing frequency count for a term
+                    
                     else:
-                        self.tf_index[docNo][word] += 1         # incrementing frequency count for a term
+
+                        self.tf_index[key][word] += 1         # incrementing frequency count for a term
 
                     # Vocablary => term : term frequency
 
@@ -80,9 +87,11 @@ class TFIDF:
     
     def length_normalization(self):
 
-        self.magnitude = [0] * self.noOfDocs        # each index stores magnitude for a particular document
+        self.magnitude = {}                                         # each index stores magnitude for a particular document
 
-        for i in range(self.noOfDocs):
+        for i in self.tf_index.keys():
+            
+            self.magnitude[i] = 0
 
             for key in self.tf_index[i].keys():
 
@@ -97,7 +106,8 @@ class TFIDF:
     def BuildIdfIndex(self):
         df = {}
 
-        for i in range(self.noOfDocs):
+        for i in self.tf_index.keys():
+
             temp = []
             for key in self.tf_index[i].keys():
 
@@ -121,15 +131,15 @@ class TFIDF:
     
     def BuildTfIdfIndex(self):
 
-        for i in range(self.noOfDocs):
+        for i in self.tf_index.keys():
 
-            self.tfidf_index[str(i)] = {}
+            self.tfidf_index[i] = {}
 
             for key in self.tf_index[i].keys():
 
                 tf = (self.tf_index[i][key] / self.magnitude[i])    # length normalizing term frequency vector 
                 idf = self.idf_index[key]
-                self.tfidf_index[str(i)][key] = tf * idf            # tfidf = tf * log(N/df)
+                self.tfidf_index[i][key] = tf * idf            # tfidf = tf * log(N/df)
 
         self.WriteToDisk(self.tfidf_index,'tfidf_index')
 
@@ -139,7 +149,7 @@ class TFIDF:
 
         for i in range(self.noOfDocs):
             
-            self.features[i] = heapq.nlargest(k, self.tfidf_index[str(i)], key=self.tfidf_index[str(i)].get)
+            self.features[i] = heapq.nlargest(k, self.tfidf_index[i], key=self.tfidf_index[i].get)
 
         self.WriteToDisk(self.features,'tfidf_topKFeatures')
 

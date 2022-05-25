@@ -43,10 +43,12 @@ class FeatureSpaceBuilder:
     def add_dict_to_features(self,dict):
 
         for key in dict.keys():
+            
+            for tok in dict[key]:
+                
+                if tok not in self.feature_set:
 
-            if key not in self.feature_set:
-
-                self.feature_set += dict[key]
+                    self.feature_set.append(tok)
 
 
     def WriteToDisk(self, index, indexType):

@@ -1,3 +1,4 @@
+from unittest import result
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
@@ -6,6 +7,8 @@ import os
 import json
 from pathlib import Path
 import math
+
+from regex import R
 
 
 class NaiveBayes:
@@ -18,6 +21,8 @@ class NaiveBayes:
         self.vocablary = self.ReadFromDisk("feature_set")
 
         self.tf_index = self.ReadFromDisk("tf_index")
+
+        self.train_data = self.ReadFromDisk("train_data")
 
         print(len(self.vocablary))
 
@@ -38,8 +43,6 @@ class NaiveBayes:
 
                 self.prior = model["prior_prob"]
                 self.condProb = model["cond_prob"]
-                
-                print(model)
 
             else:
                 
@@ -99,20 +102,24 @@ class NaiveBayes:
             for tok in self.vocablary:
 
                 self.freq[_class][tok] = 0
+
                 Nc = len(self.dictionary[_class].keys())
 
                 for i in range(temp, Nc + temp):
+                    
+                    if str(i) in self.train_data.keys() and tok in self.tf_index[str(i)].keys():
 
-                    if tok in self.tf_index[str(i)].keys():
                         self.classFreq[_class] += self.tf_index[str(i)][tok]
                         self.freq[_class][tok] += self.tf_index[str(i)][tok]
 
-            print(i)
+                
             temp = Nc
+            print(i)
 
         print(self.classFreq)
 
         self.WriteToDisk(self.freq, "frequency")
+
 
     def TrainMultinomialNB(self):
 
@@ -138,13 +145,11 @@ class NaiveBayes:
         self.save_trained_model()
 
 
-    def ApplyMultinomialNB(self, doc):
+    def ApplyMultinomialNB(self, tokens):
 
         score = {}
 
-        tokens = self.PreprocessText(doc)
-
-        self.load_model()
+        # tokens = self.PreprocessText(doc)
 
         print(tokens)
 
@@ -159,7 +164,7 @@ class NaiveBayes:
 
         Keymax = max(score, key=lambda x: score[x])
 
-        print(Keymax)
+        return Keymax
 
 
     def save_trained_model(self):
@@ -170,6 +175,22 @@ class NaiveBayes:
         model["cond_prob"] = self.condProb
 
         self.WriteToDisk(model, "trained_model")
+
+
+    def predict_test_data(self):
+        
+        result_labels = {}
+
+        test_data = self.ReadFromDisk("test_data")
+
+        self.load_model()
+
+        for docNo in test_data.keys():
+
+            result_labels[docNo] = self.ApplyMultinomialNB(test_data[docNo])
+
+        print(result_labels)
+
 
     def WriteToDisk(self, index, indexType):
         filename = "\\" + indexType + ".txt"
@@ -188,14 +209,15 @@ class NaiveBayes:
 
 nb = NaiveBayes()
 
-input = "The information retrieval part deals with how to find useful information in large textual databases. This part of the course will cover inverted file systems, the vector space model (the SMART system), vector similarity, indexing, weighting, ranking, relevance feedback, phrase generation, term relationships and thesaurus construction, retrieval evaluation, and (if time permits) automatic text structuring and summarization."
+# input = "The information retrieval part deals with how to find useful information in large textual databases. This part of the course will cover inverted file systems, the vector space model (the SMART system), vector similarity, indexing, weighting, ranking, relevance feedback, phrase generation, term relationships and thesaurus construction, retrieval evaluation, and (if time permits) automatic text structuring and summarization."
 
 # input = " As part of our work on human-centered systems, we study (jointlywith cognitive scientists) human skills in motion planning and spaceorientation. These results are then used for comparison with theperformance of automatic systems and for developong hybrid physical(teleoperated) and computer graphics interaction systems. The majorproperty of such a hybrid system is that it blends together, in asynergistic manner, human and machine intelligences. Ourhardware/experimental work includes systems with massive real-timesensing and control (e.g. with thousands of sensors operating inparallel)."
 
 # input = "My goal in general is to build software systems that improvecommunication among people.  I believe that communication mediums ofthe future will have an increasing understanding of the structure andcontent of the messages they transmit.  They will manipulate,reformat, and even generate that content.  I am interested inhypertext systems, network information access, and collaboration."
 
-nb.ApplyMultinomialNB(input)
+# print(nb.ApplyMultinomialNB(input))
 
+nb.predict_test_data()
 
 # TRAINMULTINOMIALNB(C,D)
 # 1 V ← EXTRACTVOCABULARY(D)
