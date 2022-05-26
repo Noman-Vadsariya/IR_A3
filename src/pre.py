@@ -26,9 +26,7 @@ class Preprocessor:
 
         text = text.lower()  # case folding
         text = re.sub(r"-", " ", text)  # handling hyphen
-        text = re.sub(
-            r"[^\w\s]", " ", text
-        )  # noise removal - replacing all types of [^a-zA-Z0-9] and [^\t\r\n\f] with space for splitting on space
+        text = re.sub(r"[^\w\s]", " ", text)  # noise removal - replacing all types of [^a-zA-Z0-9] and [^\t\r\n\f] with space for splitting on space
         text = text.split()  # splitting on space
         return text
 
@@ -42,7 +40,7 @@ class Preprocessor:
         filtered_sentence = []
 
         for w in tokens:
-            if (w not in self.stop_words) and w.isalpha():
+            if (w not in self.stop_words) and (not w.isnumeric()) and (len(w)!=1):
                 filtered_sentence.append(self.Lemmatization(w))
 
         return filtered_sentence
@@ -55,9 +53,7 @@ class Preprocessor:
 
     def Scrape(self, folderNames):
 
-        collectionDir = str(Path(__file__).parent.resolve()).replace(
-            "src", "course-cotrain-data"
-        )
+        collectionDir = str(Path(__file__).parent.resolve()).replace("src", "course-cotrain-data")
 
         print(collectionDir)
 
@@ -73,7 +69,8 @@ class Preprocessor:
 
             print(_class)
 
-            self.dictionary[_class] = {}
+            if _class not in self.dictionary.keys():
+                self.dictionary[_class] = {}
 
             for filename in os.listdir(temp):
 
@@ -179,7 +176,7 @@ class Preprocessor:
 p = Preprocessor()
 
 # s.Scrape(['fulltext\\course'])
-# s.Scrape(['fulltext\\course','fulltext\\non-course','inlinks\\course','inlinks\\non-course'])
+# p.Scrape(['fulltext\\course','fulltext\\non-course','inlinks\\course','inlinks\\non-course'])
 p.Scrape(["fulltext\\course", "fulltext\\non-course"])
 p.split_train_test()
 # s.Scrape('fulltext\\non-course')

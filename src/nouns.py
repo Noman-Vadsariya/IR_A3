@@ -67,7 +67,7 @@ class TopicTerms:
             self.twords[topic] = line.split('  ')
             
         
-        print(self.twords)
+        # print(self.twords)
 
 
     def WriteToDisk(self, index, indexType):

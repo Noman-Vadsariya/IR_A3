@@ -2,13 +2,13 @@ from unittest import result
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+from sklearn.metrics import classification_report
+
 import re
 import os
 import json
 from pathlib import Path
 import math
-
-from regex import R
 
 
 class NaiveBayes:
@@ -31,6 +31,9 @@ class NaiveBayes:
 
         self.classes = self.dictionary.keys()
 
+        self.load_model()
+
+
     def load_model(self):
 
         if os.path.isdir(self.DataDir):  # if directory already not present
@@ -43,6 +46,8 @@ class NaiveBayes:
 
                 self.prior = model["prior_prob"]
                 self.condProb = model["cond_prob"]
+
+                print("Model Loaded\n")
 
             else:
                 
@@ -78,16 +83,18 @@ class NaiveBayes:
         filtered_sentence = []
 
         for w in tokens:
-            if (w not in self.stop_words) and w.isalpha():
+            if (w not in self.stop_words) and (not w.isnumeric()) and (len(w)!=1):
                 filtered_sentence.append(self.Lemmatization(w))
 
         return filtered_sentence
+
 
     def PreprocessText(self, text):
         self.loadStopwords()
         tokens = self.tokenize(text)
         tokens = self.remove_number_stopwords(tokens)
         return tokens
+
 
     def CountFrequency(self):
 
@@ -107,7 +114,7 @@ class NaiveBayes:
 
                 for i in range(temp, Nc + temp):
                     
-                    if str(i) in self.train_data.keys() and tok in self.tf_index[str(i)].keys():
+                    if str(i) in self.tf_index.keys() and tok in self.tf_index[str(i)].keys():
 
                         self.classFreq[_class] += self.tf_index[str(i)][tok]
                         self.freq[_class][tok] += self.tf_index[str(i)][tok]
@@ -141,17 +148,16 @@ class NaiveBayes:
             for tok in self.vocablary:
                 self.condProb[_class][tok] = (self.freq[_class][tok] + 1) / (self.classFreq[_class] + len(self.vocablary))
 
+        print("Model Trained\n")
 
         self.save_trained_model()
+
+        print("Model Saved\n")
 
 
     def ApplyMultinomialNB(self, tokens):
 
         score = {}
-
-        # tokens = self.PreprocessText(doc)
-
-        print(tokens)
 
         for _class in self.classes:
 
@@ -181,15 +187,15 @@ class NaiveBayes:
         
         result_labels = {}
 
-        test_data = self.ReadFromDisk("test_data")
+        self.test_data = self.ReadFromDisk("test_data")
 
-        self.load_model()
+        for docNo in self.test_data.keys():
 
-        for docNo in test_data.keys():
+            result_labels[docNo] = self.ApplyMultinomialNB(self.test_data[docNo])
 
-            result_labels[docNo] = self.ApplyMultinomialNB(test_data[docNo])
+        # print(result_labels)
 
-        print(result_labels)
+        return result_labels
 
 
     def WriteToDisk(self, index, indexType):
@@ -207,6 +213,41 @@ class NaiveBayes:
         return index
 
 
+    def EvaluationMetrics(self, result_labels):
+
+        estimated_labels = []
+        true_labels = []
+
+        for key in self.test_data.keys():
+
+            if key in self.dictionary['course'].keys():
+
+                true_labels.append('course')
+
+            else:
+
+                true_labels.append('non-course')
+        
+
+        for key in result_labels.keys():
+
+            estimated_labels.append(result_labels.get(key))  
+
+
+        # true_labels = list(true_results.values())
+
+        # print(estimated_labels)
+        # print(true_labels)
+
+        print(classification_report(true_labels,estimated_labels))
+
+
+
+
+            
+
+
+
 nb = NaiveBayes()
 
 # input = "The information retrieval part deals with how to find useful information in large textual databases. This part of the course will cover inverted file systems, the vector space model (the SMART system), vector similarity, indexing, weighting, ranking, relevance feedback, phrase generation, term relationships and thesaurus construction, retrieval evaluation, and (if time permits) automatic text structuring and summarization."
@@ -217,7 +258,9 @@ nb = NaiveBayes()
 
 # print(nb.ApplyMultinomialNB(input))
 
-nb.predict_test_data()
+estimated_labels = nb.predict_test_data()
+
+nb.EvaluationMetrics(estimated_labels)
 
 # TRAINMULTINOMIALNB(C,D)
 # 1 V ← EXTRACTVOCABULARY(D)

@@ -25,7 +25,7 @@ class LexicalChain:
 
         self.POS_tagging()
 
-        print(self.chains)
+        # print(self.chains)
 
         self.WriteToDisk(self.chains,"LexicalChain")
 
