@@ -198,19 +198,13 @@ class NaiveBayes:
         return result_labels
 
 
-    def WriteToDisk(self, index, indexType):
-        filename = "\\" + indexType + ".txt"
-        with open(self.DataDir + filename, "w") as filehandle:
-            filehandle.write(json.dumps(index))
+    def predict_input(self,input):
 
-    # reading specified Index from Disk
+        tokens = self.PreprocessText(input)
 
-    def ReadFromDisk(self, indexType):
-        filename = "\\" + indexType + ".txt"
-        with open(self.DataDir + filename, "r") as filehandle:
-            index = json.loads(filehandle.read())
+        label = self.ApplyMultinomialNB(tokens)
 
-        return index
+        return label
 
 
     def EvaluationMetrics(self, result_labels):
@@ -242,13 +236,29 @@ class NaiveBayes:
         print(classification_report(true_labels,estimated_labels))
 
 
+    def WriteToDisk(self, index, indexType):
+        filename = "\\" + indexType + ".txt"
+        with open(self.DataDir + filename, "w") as filehandle:
+            filehandle.write(json.dumps(index))
+
+    # reading specified Index from Disk
+
+    def ReadFromDisk(self, indexType):
+        filename = "\\" + indexType + ".txt"
+        with open(self.DataDir + filename, "r") as filehandle:
+            index = json.loads(filehandle.read())
+
+        return index
+
+
+
 
 
             
 
 
 
-nb = NaiveBayes()
+# nb = NaiveBayes()
 
 # input = "The information retrieval part deals with how to find useful information in large textual databases. This part of the course will cover inverted file systems, the vector space model (the SMART system), vector similarity, indexing, weighting, ranking, relevance feedback, phrase generation, term relationships and thesaurus construction, retrieval evaluation, and (if time permits) automatic text structuring and summarization."
 
@@ -258,9 +268,9 @@ nb = NaiveBayes()
 
 # print(nb.ApplyMultinomialNB(input))
 
-estimated_labels = nb.predict_test_data()
+# estimated_labels = nb.predict_test_data()
 
-nb.EvaluationMetrics(estimated_labels)
+# nb.EvaluationMetrics(estimated_labels)
 
 # TRAINMULTINOMIALNB(C,D)
 # 1 V ← EXTRACTVOCABULARY(D)

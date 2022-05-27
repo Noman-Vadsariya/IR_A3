@@ -133,4 +133,4 @@ class LexicalChain:
         return index
 
 
-l = LexicalChain()
+# l = LexicalChain()

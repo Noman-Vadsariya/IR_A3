@@ -85,4 +85,4 @@ class TopicTerms:
         return index
 
 
-t = TopicTerms()
+# t = TopicTerms()

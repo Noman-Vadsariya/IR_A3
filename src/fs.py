@@ -66,5 +66,4 @@ class FeatureSpaceBuilder:
         return index
 
 
-
-fs = FeatureSpaceBuilder()
+# fs = FeatureSpaceBuilder()

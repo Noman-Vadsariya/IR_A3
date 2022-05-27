@@ -194,4 +194,4 @@ class TFIDF:
         return index
 
 
-t = TFIDF()
+# t = TFIDF()
