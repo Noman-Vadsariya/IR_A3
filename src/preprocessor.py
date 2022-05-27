@@ -173,8 +173,7 @@ class Preprocessor:
             filehandle.write(json.dumps(index))
 
 
-p = Preprocessor()
-
+# p = Preprocessor()
 # s.Scrape(['fulltext\\course'])
 # p.Scrape(['fulltext\\course','fulltext\\non-course','inlinks\\course','inlinks\\non-course'])
 # p.Scrape(["fulltext\\course", "fulltext\\non-course"])

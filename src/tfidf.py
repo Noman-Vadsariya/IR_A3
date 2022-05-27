@@ -28,7 +28,6 @@ class TFIDF:
         self.length_normalization()
         self.BuildIdfIndex()
         self.BuildTfIdfIndex()
-        # self.getTopKFeatures()
         self.topKFeatures()
 
     # calculates term frequency for each unique term in each document.
@@ -142,17 +141,6 @@ class TFIDF:
                 self.tfidf_index[i][key] = tf * idf            # tfidf = tf * log(N/df)
 
         self.WriteToDisk(self.tfidf_index,'tfidf_index')
-
-
-    # writing specified index to disk
-    def getTopKFeatures(self,k=100):
-
-        for i in range(self.noOfDocs):
-            
-            self.features[i] = heapq.nlargest(k, self.tfidf_index[i], key=self.tfidf_index[i].get)
-
-        self.WriteToDisk(self.features,'tfidf_topKFeatures')
-
     
     def topKFeatures(self, k=100):
         
@@ -193,5 +181,3 @@ class TFIDF:
 
         return index
 
-
-# t = TFIDF()

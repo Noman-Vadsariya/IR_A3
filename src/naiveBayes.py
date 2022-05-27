@@ -1,4 +1,5 @@
 from unittest import result
+from black import out
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
@@ -24,14 +25,12 @@ class NaiveBayes:
 
         self.train_data = self.ReadFromDisk("train_data")
 
-        print(len(self.vocablary))
+        # print(len(self.vocablary))
 
         self.freq = {}
         self.classFreq = {}
 
         self.classes = self.dictionary.keys()
-
-        self.load_model()
 
 
     def load_model(self):
@@ -125,7 +124,7 @@ class NaiveBayes:
 
         print(self.classFreq)
 
-        self.WriteToDisk(self.freq, "frequency")
+        # self.WriteToDisk(self.freq, "frequency")
 
 
     def TrainMultinomialNB(self):
@@ -193,8 +192,6 @@ class NaiveBayes:
 
             result_labels[docNo] = self.ApplyMultinomialNB(self.test_data[docNo])
 
-        # print(result_labels)
-
         return result_labels
 
 
@@ -227,13 +224,20 @@ class NaiveBayes:
 
             estimated_labels.append(result_labels.get(key))  
 
+        report = classification_report(true_labels,estimated_labels,output_dict=True)
 
-        # true_labels = list(true_results.values())
+        for metric in report.keys():
+            
+            if metric != 'accuracy':
 
-        # print(estimated_labels)
-        # print(true_labels)
+                for key in report[metric].keys():
+                    
+                    report[metric][key] = round(report[metric][key] * 100) 
+            else:
 
-        print(classification_report(true_labels,estimated_labels))
+                report[metric] = round(report[metric] * 100)
+
+        return report
 
 
     def WriteToDisk(self, index, indexType):

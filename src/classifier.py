@@ -1,10 +1,12 @@
 from msilib.schema import Class
-from pre import Preprocessor
+
+from sympy import evaluate
+from preprocessor import Preprocessor
 from tfidf import TFIDF
-from nouns import TopicTerms
-from c import LexicalChain
-from fs import FeatureSpaceBuilder
-from nb import NaiveBayes
+from nouns_topics import TopicTerms
+from lexicalChain import LexicalChain
+from featureSelector import FeatureSpaceBuilder
+from naiveBayes import NaiveBayes
 
 from pathlib import Path
 import os
@@ -14,8 +16,6 @@ class Classifier:
     def __init__(self):
         
         self.DataDir = str(Path(__file__).parent.resolve()).replace("src", "data")
-        self.load_data()
-        self.nb = NaiveBayes()
 
 
     def load_data(self):
@@ -40,15 +40,22 @@ class Classifier:
 
             print("Data Directory Exists")
 
+    def train_model(self):
+
+        self.load_data()
+        self.nb = NaiveBayes()
+        self.nb.load_model()
+
 
     def predict_test_data(self):
 
-        self.estimated_result = self.nb.predict_test_data()
-        self.evaluation_metrics = self.nb.EvaluationMetrics(self.estimated_result)
-        
-        print(self.evaluation_metrics)
+        estimated_result = self.nb.predict_test_data()
+        report = self.nb.EvaluationMetrics(estimated_result)
 
-        return (self.estimated_result,self.evaluation_metrics)
+        print(report)
+
+        return (estimated_result,report)
+
 
     def predict_input(self,input):
 
@@ -59,8 +66,9 @@ class Classifier:
         return label
 
 
-# c = Classifier()
-# c.predict_test_data()
+c = Classifier()
+c.train_model()
+print(c.predict_test_data())
 
 # input = "The information retrieval part deals with how to find useful information in large textual databases. This part of the course will cover inverted file systems, the vector space model (the SMART system), vector similarity, indexing, weighting, ranking, relevance feedback, phrase generation, term relationships and thesaurus construction, retrieval evaluation, and (if time permits) automatic text structuring and summarization."
 # 
