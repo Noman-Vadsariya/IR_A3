@@ -23,7 +23,7 @@ class LexicalChain:
 
         self.WriteToDisk(self.chains,"LexicalChain")
 
-        print("\n Lexical Chain Generated => Saved in LexicalChain.txt")
+        print("\nLexical Chain Generated => Saved in LexicalChain.txt")
 
 
     def getRelations(self,tokens):
@@ -104,16 +104,15 @@ class LexicalChain:
 
         chain = []
 
-        while vocab:
+        for temp in vocab:
         
-            temp = vocab.pop()
-        
-            if len(temp.keys()) == 1:
+            if len(temp.keys()) <= 1:
         
                 for val in temp.values():
+                    
                     if val != 1: 
                         chain.append(temp)
-        
+    
             else:
                 chain.append(temp)
 
@@ -124,6 +123,8 @@ class LexicalChain:
         
         docNo = [*self.documents.keys()]
 
+        print("\n Generating Lexical Chains")
+        
         #Build lexical Chains for all docs in the training set
         for no in docNo:
             

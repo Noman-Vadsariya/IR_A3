@@ -35,7 +35,7 @@
 
 ## Assignment Desciption
 
-    src
+### src
 
     - preprocessor.py => implements preprocessing chain
 
@@ -51,3 +51,20 @@
 
     - classifier.py => wrapper for feature selection, training, testing and prediction 
 
+### data
+
+    - dictionary.txt => document url to docid mapping
+
+    - feature_set.txt => combine features set for training
+
+    - kTopicSets.txt => features based of topic occurrences
+
+    - LexicalChain.txt => lexical chains for all documents in the training set
+
+    - train_data.txt, test_data.txt => training and testing datasets
+
+    - tfidf_topKfeatures.txt => top 100 features based on tfidf
+
+    - trained_model.txt => saving trained model (prior and conditional probabilities)
+
+    - vocablary.txt => overall vocablary before feature selection
