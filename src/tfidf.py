@@ -4,7 +4,10 @@ from pathlib import Path
 import math
 import heapq
 
+# 1st Feature Selection Strategy => Top 100 Words based on tfidf
+
 # Builds and Stores Term frequency index, Inverse document index and tfidf index from Collection of Documents
+
 class TFIDF:
 
     def __init__(self, FolderName=None):
@@ -61,6 +64,7 @@ class TFIDF:
                     else:
 
                         self.tf_index[key][word] += 1         # incrementing frequency count for a term
+
 
                     # Vocablary => term : term frequency
 
@@ -138,10 +142,11 @@ class TFIDF:
 
                 tf = (self.tf_index[i][key] / self.magnitude[i])    # length normalizing term frequency vector 
                 idf = self.idf_index[key]
-                self.tfidf_index[i][key] = tf * idf            # tfidf = tf * log(N/df)
-
-        self.WriteToDisk(self.tfidf_index,'tfidf_index')
+                self.tfidf_index[i][key] = tf * idf                 # tfidf = tf * log(N/df)
     
+
+    # Extract top 100 words after summing tfidf value for each unique vocablary term
+
     def topKFeatures(self, k=100):
         
         tfidf_sum = {}
@@ -157,15 +162,14 @@ class TFIDF:
                 if key in self.tfidf_index[i].keys():
 
                     tfidf_sum[key] += self.tfidf_index[i][key]
-        
-        print(len(tfidf_sum.keys()))
+
             
         self.topfeatures = heapq.nlargest(k, tfidf_sum, key=tfidf_sum.get)
 
-        print(len(self.topfeatures))
+        self.WriteToDisk(self.topfeatures,"tfidf_topKFeatures")
 
-        self.WriteToDisk(self.topfeatures,"topKFeatures")
 
+    # writing specified Index to Disk
 
     def WriteToDisk(self, index, indexType):
         filename = "\\" + indexType + ".txt"

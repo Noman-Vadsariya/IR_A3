@@ -1,3 +1,4 @@
+from pydoc_data.topics import topics
 import nltk
 from pathlib import Path
 import os
@@ -8,6 +9,7 @@ import re
 import gensim
 import gensim.corpora as corpora
 
+# 2nd Feature Selection Strategy => Get Top 50 Nouns and Topic Base sets
 
 class TopicTerms:
 
@@ -23,12 +25,14 @@ class TopicTerms:
         self.extractTopicSets()
 
         self.WriteToDisk(self.nouns, "topKNouns")
-        self.WriteToDisk(self.twords, "kTopicSets")
+        self.WriteToDisk(self.topic_words, "kTopicSets")
 
     def POS_tagging(self):
         
         words = [*self.vocablary.keys()]
 
+        # get nltk tagging for each token
+ 
         tagged = nltk.pos_tag(words)
 
         for (tok, tag) in tagged:
@@ -37,38 +41,38 @@ class TopicTerms:
             else:
                 self.remTerms.append(tok)
 
-        print(len(self.nouns.keys()))
-        print(len(self.remTerms))
 
     def getTopKNouns(self, k=50):
 
         # Top 50 Nouns
+
+        print("Top 50 Nouns: ")
         self.nouns = heapq.nlargest(k, self.nouns, key=self.nouns.get)
         print(self.nouns)
 
     def extractTopicSets(self, num_topic=10):
 
         # co-occurrences term in each Topic Set
-
         # Converting text to bag of words
 
         remTerms = [self.remTerms]
         id2word = gensim.corpora.Dictionary(remTerms)
         corpus = [id2word.doc2bow(text) for text in remTerms]
-        self.lda_model = gensim.models.ldamodel.LdaModel(
-            corpus=corpus, num_topics=10, id2word=id2word, passes=10
-        )
 
-        x=self.lda_model.show_topics()
+        # Segregate terms in 10 different topic sets 
+        self.lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=10, id2word=id2word, passes=10)
 
-        self.twords={}
-        for topic,word in x:
-            line = re.sub('[^A-Za-z ]+', '', word)
-            self.twords[topic] = line.split('  ')
+        topics = self.lda_model.show_topics()
+
+        self.topic_words={}
+
+        for topic,word in topics:
             
-        
-        # print(self.twords)
+            line = re.sub('[^A-Za-z ]+', '', word)
+            self.topic_words[topic] = line.split('  ')
 
+
+    # writing specified Index to Disk
 
     def WriteToDisk(self, index, indexType):
         filename = "\\" + indexType + ".txt"
@@ -83,6 +87,3 @@ class TopicTerms:
             index = json.loads(filehandle.read())
 
         return index
-
-
-# t = TopicTerms()

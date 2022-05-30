@@ -1,15 +1,13 @@
-from msilib.schema import Class
-
-from sympy import evaluate
 from preprocessor import Preprocessor
 from tfidf import TFIDF
 from nouns_topics import TopicTerms
 from lexicalChain import LexicalChain
 from featureSelector import FeatureSpaceBuilder
 from naiveBayes import NaiveBayes
-
 from pathlib import Path
 import os
+
+# Wrapper Class for Model Training and Testing
 
 class Classifier:
 
@@ -26,6 +24,7 @@ class Classifier:
 
             p = Preprocessor()
             p.Scrape(["fulltext\\course", "fulltext\\non-course"])
+
             p.split_train_test()
             
             t = TFIDF()
@@ -40,6 +39,7 @@ class Classifier:
 
             print("Data Directory Exists")
 
+
     def train_model(self):
 
         self.load_data()
@@ -52,6 +52,7 @@ class Classifier:
         estimated_result = self.nb.predict_test_data()
         report = self.nb.EvaluationMetrics(estimated_result)
 
+        print("Classification Report", end="\n\n")
         print(report)
 
         return (estimated_result,report)

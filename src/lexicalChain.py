@@ -1,16 +1,5 @@
-from typing import final
 import nltk
-import string
-from heapq import nlargest
-from nltk.tag import pos_tag
-from string import punctuation
-from inspect import getsourcefile
-from collections import defaultdict
-from nltk.tokenize import word_tokenize
-from os.path import abspath, join, dirname
-from nltk.corpus import wordnet, stopwords
-from nltk.tokenize import RegexpTokenizer
-
+from nltk.corpus import wordnet
 from pathlib import Path
 import json
 
@@ -21,13 +10,166 @@ class LexicalChain:
         self.dataDir = str(Path(__file__).parent.resolve()).replace("src", "data")
         self.documents = self.ReadFromDisk("train_data")
         self.chains = {}
-        self.nouns = []
+        tokens = []
 
         self.POS_tagging()
 
-        # print(self.chains)
-
         self.WriteToDisk(self.chains,"LexicalChain")
+
+
+    def getRelations(self,tokens):
+
+        # relations = defaultdict(list)
+        
+        relations = {}
+
+        for tok in tokens:
+
+            r = []
+            
+            for syn in wordnet.synsets(tok):
+            
+                for l in syn.hyponyms():
+                    if l.hyponyms():
+                        r.append(l.hyponyms()[0].name().split('.')[0])
+            
+                for l in syn.hypernyms():
+                    if l.hypernyms():
+                        r.append(l.hypernyms()[0].name().split('.')[0])
+            
+                for l in syn.lemmas():
+                    r.append(l.name())
+
+            relations[tok] = r
+
+        self.WriteToDisk(relations,"relations")
+
+        # print("hello")
+        return relations
+        
+
+    # def constructLexicalChains(self,tokens,relation):
+    #     vocab = []
+        
+    #     threshold = 0.3
+        
+    #     for tok in tokens:
+
+    #         flag = 0
+            
+    #         for chain in vocab:
+
+    #         # for j in range(len(vocab)):
+            
+    #             if flag == 0:
+                    
+    #                 keys = chain.keys()
+
+    #                 for key in keys:
+    #                 # for key in list(vocab[j]):
+            
+    #                     if key == tok and flag == 0:
+    #                         chain[tok] += 1
+    #                         flag = 1
+            
+    #                     elif key in relation[tok] and flag == 0:
+    #                         syns1 = wordnet.synsets(key)
+    #                         syns2 = wordnet.synsets(tok)
+                            
+    #                         if syns1[0].wup_similarity(syns2[0]) >= threshold:
+    #                             chain[tok] = 1
+    #                             flag = 1
+            
+    #                     elif tok in relation[key] and flag == 0:
+    #                         syns1 = wordnet.synsets(key)
+    #                         syns2 = wordnet.synsets(tok)
+                            
+    #                         if syns1[0].wup_similarity(syns2[0]) >= threshold:
+    #                             chain[tok] = 1
+    #                             flag = 1
+            
+    #         # Initialize a new chain with the token because it does not belong to any other present chain 
+    #         if flag == 0: 
+                
+    #             dic = {}
+    #             dic[tok] = 1
+    #             vocab.append(dic)
+
+    #             # print(vocab)
+
+    #             flag = 1
+
+    #     return vocab
+
+    def constructLexicalChains(self,tokens,relations):
+
+        threshold = 0.5
+        chains = []
+
+        for tok in tokens:
+
+            flag = 0
+
+            if len(chains) > 0:                     # for the first time no chain present
+
+                for chain in chains:
+
+                    for key in chain.keys():        # for comparing each token with each member of a chain
+
+                        if tok == key:
+
+                            chain[key] += 1
+                            flag = 1                # freqeuncy count of token incremented
+                            break
+
+                        elif tok in relations[key] or key in relations[tok]:
+
+                            synTok = wordnet.synsets(tok)
+                            synKey = wordnet.synsets(key)
+                            
+                            if len(synKey) != 0 and len(synTok) != 0:
+
+                                if synTok[0].wup_similarity(synKey[0]) >= threshold:
+
+                                    chain[tok] = 1
+                                    flag = 1            # token added to chain
+                                    break
+
+                    
+                    if flag == 1:
+                        break 
+
+            # Initialize a new chain with the token if token not added to any existing chains 
+            if flag == 0:
+                
+                newChain = { tok : 1 }
+                chains.append(newChain)
+
+                # print(chains)
+
+        return chains
+
+
+    # delete from the list the chains that only have one element and that word is only repeated once.
+    def discardIrrelevant(self,vocab):
+
+        chain = []
+
+        while vocab:
+        
+            temp = vocab.pop()
+        
+            if len(temp.keys()) == 1:
+        
+                for val in temp.values():
+                    if val != 1: 
+                        chain.append(temp)
+        
+            else:
+                chain.append(temp)
+
+        return chain 
+
 
     def POS_tagging(self):
         
@@ -35,96 +177,33 @@ class LexicalChain:
 
         for no in docNo:
 
-            self.nouns.clear()
+            # tokens.clear()
 
-            words = self.documents[no]
-            tagged = nltk.pos_tag(words)
+            # words = self.documents[no]
+            # tagged = nltk.pos_tag(words)
 
-            for (tok, tag) in tagged:
-                if tag == "NNP" or tag == "NN" or tag == "NNS" or tag == "NNPS":
-                    self.nouns.append(tok)
-                   
-            relation = self.relation_list(self.nouns)
-            lexical = self.create_lexical_chain(self.nouns, relation)
-            final_chain = self.prune(lexical)
+            # for (tok, tag) in tagged:
+            #     if (tag == "NNP" or tag == "NN" or tag == "NNS" or tag == "NNPS") and (tok not in tokens):
+            #         tokens.append(tok)
+            
+            # print(tokens)
+            # print(no)
+            relation = self.getRelations(self.documents[no])
+            lexical = self.constructLexicalChains(self.documents[no],relation)
+            chain = self.discardIrrelevant(lexical)
 
-            all_keys = list(set().union(*(d.keys() for d in final_chain)))
+            keys = list(set().union(*(d.keys() for d in chain)))
 
-            self.chains[no] = all_keys
+            self.chains[no] = keys
 
-    def relation_list(self,nouns):
-
-        relation_list = defaultdict(list)
-        
-        for k in range (len(nouns)):   
-            relation = []
-            for syn in wordnet.synsets(nouns[k], pos = wordnet.NOUN):
-                for l in syn.lemmas():
-                    relation.append(l.name())
-                    if l.antonyms():
-                        relation.append(l.antonyms()[0].name())
-                for l in syn.hyponyms():
-                    if l.hyponyms():
-                        relation.append(l.hyponyms()[0].name().split('.')[0])
-                for l in syn.hypernyms():
-                    if l.hypernyms():
-                        relation.append(l.hypernyms()[0].name().split('.')[0])
-            relation_list[nouns[k]].append(relation)
-        return relation_list
-        
-
-    def create_lexical_chain(self,nouns, relation_list):
-        lexical = []
-        threshold = 0.5
-        for noun in nouns:
-            flag = 0
-            for j in range(len(lexical)):
-                if flag == 0:
-                    for key in list(lexical[j]):
-                        if key == noun and flag == 0:
-                            lexical[j][noun] +=1
-                            flag = 1
-                        elif key in relation_list[noun][0] and flag == 0:
-                            syns1 = wordnet.synsets(key, pos = wordnet.NOUN)
-                            syns2 = wordnet.synsets(noun, pos = wordnet.NOUN)
-                            if syns1[0].wup_similarity(syns2[0]) >= threshold:
-                                lexical[j][noun] = 1
-                                flag = 1
-                        elif noun in relation_list[key][0] and flag == 0:
-                            syns1 = wordnet.synsets(key, pos = wordnet.NOUN)
-                            syns2 = wordnet.synsets(noun, pos = wordnet.NOUN)
-                            if syns1[0].wup_similarity(syns2[0]) >= threshold:
-                                lexical[j][noun] = 1
-                                flag = 1
-            if flag == 0: 
-                dic_nuevo = {}
-                dic_nuevo[noun] = 1
-                lexical.append(dic_nuevo)
-                flag = 1
-
-        return lexical
-        
-
-    def prune(self,lexical):
-        final_chain = []
-        while lexical:
-            result = lexical.pop()
-            if len(result.keys()) == 1:
-                for value in result.values():
-                    if value != 1: 
-                        final_chain.append(result)
-            else:
-                final_chain.append(result)
-
-        return final_chain
 
     def WriteToDisk(self, index, indexType):
         filename = "\\" + indexType + ".txt"
         with open(self.dataDir + filename, "w") as filehandle:
             filehandle.write(json.dumps(index))
 
-    # reading specified Index from Disk
 
+    # reading specified Index from Disk
     def ReadFromDisk(self, indexType):
         filename = "\\" + indexType + ".txt"
         with open(self.dataDir + filename, "r") as filehandle:

@@ -2,11 +2,10 @@ from bs4 import BeautifulSoup
 import os
 from pathlib import Path
 import json
+import random
 import re
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-
-import random
 
 class Preprocessor:
     def __init__(self):
@@ -74,10 +73,7 @@ class Preprocessor:
 
             for filename in os.listdir(temp):
 
-                # if filename.endswith('.html') or filename.endswith('.edu'):
-
                 fname = os.path.join(temp, filename)
-                # print("Current file name ..", os.path.abspath(fname))
 
                 with open(fname, "r") as file:
 
@@ -100,31 +96,25 @@ class Preprocessor:
 
                     i += 1
 
-        # print(self.documents)
         self.WriteToDisk(self.dictionary, "dictionary")
-        # self.WriteToDisk(self.documents, "documents")
+
 
     def split_train_test(self):
 
         self.total_docs = len(self.dictionary['course'].keys()) + len(self.dictionary['non-course'].keys())
 
-        print(self.total_docs)
-
         train_split = round(self.total_docs * 0.80)
         test_split = round(self.total_docs * 0.20)
 
+        print("No of (Train , Test) Docs => " , end="") 
         print((train_split, test_split))
 
         course_test = round(test_split * 0.20)
         non_course_test = round(test_split * 0.80)
 
-        print((course_test, non_course_test)) 
-
         test_doc_ids = {}
         test_doc_ids['course'] = random.sample(range(0, 229), course_test)
         test_doc_ids['non-course'] = random.sample(range(230, 1050), non_course_test)
-
-        print(test_doc_ids)
 
         self.load_train_data(test_doc_ids)
         self.load_test_data(test_doc_ids)
@@ -171,12 +161,3 @@ class Preprocessor:
 
         with open(filePath, "w") as filehandle:
             filehandle.write(json.dumps(index))
-
-
-# p = Preprocessor()
-# s.Scrape(['fulltext\\course'])
-# p.Scrape(['fulltext\\course','fulltext\\non-course','inlinks\\course','inlinks\\non-course'])
-# p.Scrape(["fulltext\\course", "fulltext\\non-course"])
-# p.split_train_test()
-# s.Scrape('fulltext\\non-course')
-# s.Scrape('inlinks\\non-course')

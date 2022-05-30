@@ -14,7 +14,7 @@ class FeatureSpaceBuilder:
 
     def load_features(self):
 
-        self.tfidf_features = self.ReadFromDisk('topKFeatures')
+        self.tfidf_features = self.ReadFromDisk('tfidf_topKFeatures')
 
         self.noun_features = self.ReadFromDisk('topKNouns')
 

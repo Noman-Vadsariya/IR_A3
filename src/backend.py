@@ -8,20 +8,6 @@ CORS(app, origins="*")
 
 classifier = Classifier()
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    
-    global classifier
-
-    payload = request.get_json()
-    text = payload.get("input")
-
-    classifier.train_model()
-    label = classifier.predict_input(text)
-
-    return jsonify({"input": text, "label": label}), 200
-
-
 @app.route("/train", methods=["POST"])
 def train_model():
     
@@ -50,6 +36,20 @@ def test_model():
     except:
 
         return jsonify({"msg": "Error in testing model"}), 500
+
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    
+    global classifier
+
+    payload = request.get_json()
+    text = payload.get("input")
+
+    classifier.train_model()
+    label = classifier.predict_input(text)
+
+    return jsonify({"input": text, "label": label}), 200
 
 
 if __name__ == "__main__":
