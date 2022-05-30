@@ -4,9 +4,12 @@ from pathlib import Path
 import math
 import heapq
 
-# 1st Feature Selection Strategy => Top 100 Words based on tfidf
+"""
+ 1st Feature Selection Strategy => Top 100 Words based on TFIDF
 
-# Builds and Stores Term frequency index, Inverse document index and tfidf index from Collection of Documents
+ Builds and Stores Term frequency index, Inverse document index and tfidf index from Collection of Documents
+
+"""
 
 class TFIDF:
 
@@ -24,14 +27,14 @@ class TFIDF:
         self.DataDir = str(Path(__file__).parent.resolve()).replace("src", "data")  # Folder to Store Indexes
         
         self.documents = self.ReadFromDisk('train_data')
-        # self.documents = self.ReadFromDisk('documents')
-        # self.documents = self.ReadFromDisk('doc')
-
+        
         self.BuildTfIndex()
         self.length_normalization()
         self.BuildIdfIndex()
         self.BuildTfIdfIndex()
         self.topKFeatures()
+
+        print("\nTop 100 Words Selected Based on TFIDF => Saved in tfidf_topKFeatures.txt")
 
     # calculates term frequency for each unique term in each document.
     # tf_index = {doc1 : { t1 : 3, t2: 4, ... ,tn: 5}, doc1 : { t1 : 2, t2: 1, ... ,tn: 4}, ... , docN : { t1 : 1, t2: 4, ... ,tn: 2} )   
@@ -77,13 +80,9 @@ class TFIDF:
 
         self.noOfDocs = docNo
 
-        print(self.noOfDocs)
-
         self.WriteToDisk(self.vocablary,'vocablary')
 
         self.WriteToDisk(self.tf_index,'tf_index')
-
-        print(len(self.vocablary.keys()))
 
 
     # Euclidean Normalization Vector / Magnitude of Vector => V / || V ||
@@ -150,8 +149,6 @@ class TFIDF:
     def topKFeatures(self, k=100):
         
         tfidf_sum = {}
-
-        print(len(self.vocablary.keys()))
 
         for key in self.vocablary.keys():
             

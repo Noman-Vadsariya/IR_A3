@@ -7,7 +7,12 @@ from naiveBayes import NaiveBayes
 from pathlib import Path
 import os
 
-# Wrapper Class for Model Training and Testing
+"""
+
+- Wrapper Class for Feature Selection , Model Training , Testing and Input Prediction
+
+"""
+
 
 class Classifier:
 
@@ -65,17 +70,3 @@ class Classifier:
         print(label)
 
         return label
-
-
-c = Classifier()
-c.train_model()
-print(c.predict_test_data())
-
-# input = "The information retrieval part deals with how to find useful information in large textual databases. This part of the course will cover inverted file systems, the vector space model (the SMART system), vector similarity, indexing, weighting, ranking, relevance feedback, phrase generation, term relationships and thesaurus construction, retrieval evaluation, and (if time permits) automatic text structuring and summarization."
-# 
-# input = " As part of our work on human-centered systems, we study (jointlywith cognitive scientists) human skills in motion planning and spaceorientation. These results are then used for comparison with theperformance of automatic systems and for developong hybrid physical(teleoperated) and computer graphics interaction systems. The majorproperty of such a hybrid system is that it blends together, in asynergistic manner, human and machine intelligences. Ourhardware/experimental work includes systems with massive real-timesensing and control (e.g. with thousands of sensors operating inparallel)."
-
-# input = "My goal in general is to build software systems that improvecommunication among people.  I believe that communication mediums ofthe future will have an increasing understanding of the structure andcontent of the messages they transmit.  They will manipulate,reformat, and even generate that content.  I am interested inhypertext systems, network information access, and collaboration."
-
-
-# c.predict_input(input)

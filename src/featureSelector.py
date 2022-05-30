@@ -3,6 +3,12 @@ from pathlib import Path
 import math
 import heapq
 
+"""
+ 
+ - Combines features from all three feature selection strategies
+
+"""
+
 class FeatureSpaceBuilder:
 
     def __init__(self):
@@ -29,7 +35,8 @@ class FeatureSpaceBuilder:
 
         self.WriteToDisk(self.feature_set,"feature_set")
 
-        print(f"Complete Size of Feature Set: {len(self.feature_set)}")
+        print(f"\nComplete Size of Feature Set: {len(self.feature_set)}")
+
 
     def add_vector_to_features(self, vector):
 
@@ -64,6 +71,3 @@ class FeatureSpaceBuilder:
             index = json.loads(filehandle.read())
 
         return index
-
-
-# fs = FeatureSpaceBuilder()

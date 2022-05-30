@@ -9,7 +9,15 @@ import re
 import gensim
 import gensim.corpora as corpora
 
-# 2nd Feature Selection Strategy => Get Top 50 Nouns and Topic Base sets
+"""
+
+ 2nd Feature Selection Strategy => Get Top 50 Nouns and Topic Base sets
+ 
+ - Extracts Top 50 most occuring nouns after pos_tagging
+ - Gets terms from overall collection after seperating terms in 10 topic sets
+
+
+"""
 
 class TopicTerms:
 
@@ -26,6 +34,8 @@ class TopicTerms:
 
         self.WriteToDisk(self.nouns, "topKNouns")
         self.WriteToDisk(self.topic_words, "kTopicSets")
+
+        print("\nTopics Sets Generated => Saved in kTopicSets.txt")
 
     def POS_tagging(self):
         
@@ -45,10 +55,10 @@ class TopicTerms:
     def getTopKNouns(self, k=50):
 
         # Top 50 Nouns
-
-        print("Top 50 Nouns: ")
         self.nouns = heapq.nlargest(k, self.nouns, key=self.nouns.get)
-        print(self.nouns)
+
+        print("\nTop 50 Nouns Selected => Saved in topKNouns.txt")
+
 
     def extractTopicSets(self, num_topic=10):
 

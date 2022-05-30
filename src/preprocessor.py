@@ -7,6 +7,16 @@ import re
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+"""
+  Preprocessing Chain
+                        
+      Extracts data from html docs,               
+      Preprocesses data 
+      Splits data into train and test sets
+
+"""
+
+
 class Preprocessor:
     def __init__(self):
         self.data = []

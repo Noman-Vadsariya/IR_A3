@@ -11,7 +11,11 @@ import json
 from pathlib import Path
 import math
 
-# Implementation of Multinomial Naives Bayes Classifier
+"""
+ 
+ Implementation of Multinomial Naives Bayes Classifier
+
+"""
 
 class NaiveBayes:
     def __init__(self):
@@ -44,7 +48,7 @@ class NaiveBayes:
                 self.prior = model["prior_prob"]
                 self.condProb = model["cond_prob"]
 
-                print("Model Loaded\n")
+                print("\nModel Loaded\n")
 
             else:
 
@@ -53,7 +57,7 @@ class NaiveBayes:
 
         else:
 
-            print("No Data Directory Exists")
+            print("\nNo Data Directory Exists")
             exit(0)
 
     # Calculated frequency of tokens for computing prior and conditional probabilities
@@ -81,18 +85,15 @@ class NaiveBayes:
                         self.freq[_class][tok] += self.tf_index[str(i)][tok]
 
             temp = Nc
-            print(i)
 
     def TrainMultinomialNB(self):
 
-        N = len(self.dictionary["course"].keys()) + len(
-            self.dictionary["non-course"].keys()
-        )
+        N = len(self.dictionary["course"].keys()) + len(self.dictionary["non-course"].keys())
 
         self.prior = {}
         self.condProb = {}
 
-        print(f"Total Docs (N) : {N}")
+        print(f"\nTotal Docs (N) : {N}")
 
         for _class in self.classes:
 
@@ -109,11 +110,11 @@ class NaiveBayes:
             for tok in self.vocablary:
                 self.condProb[_class][tok] = (self.freq[_class][tok] + 1) / (self.classFreq[_class] + len(self.vocablary))
 
-        print("Model Trained\n")
+        print("\nModel Trained\n")
 
         self.save_trained_model()
 
-        print("Model Saved\n")
+        print("\nModel Saved\n")
 
     # P(c|doc) = P(c) * (Multiply (for all test terms) P(t|c))
 
@@ -143,6 +144,7 @@ class NaiveBayes:
 
         self.WriteToDisk(model, "trained_model")
 
+    # Predict on all docs in testing set
     def predict_test_data(self):
 
         result_labels = {}
@@ -155,6 +157,7 @@ class NaiveBayes:
 
         return result_labels
 
+    # Predict on input string
     def predict_input(self, input):
 
         p = Preprocessor()
@@ -164,6 +167,7 @@ class NaiveBayes:
         label = self.ApplyMultinomialNB(tokens)
 
         return label
+
 
     # Generate Classification report for the test data
     def EvaluationMetrics(self, result_labels):

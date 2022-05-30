@@ -3,6 +3,13 @@ from nltk.corpus import wordnet
 from pathlib import Path
 import json
 
+"""
+ 3rd Feature Selection Strategy => Building Lexical Chains for each document
+
+ - Used wordnet.synsets to get relations for a words and compare words using Wu & Palmer similarity
+
+"""
+
 class LexicalChain:
 
     def __init__(self):
@@ -12,14 +19,14 @@ class LexicalChain:
         self.chains = {}
         tokens = []
 
-        self.POS_tagging()
+        self.traverseDocs()
 
         self.WriteToDisk(self.chains,"LexicalChain")
 
+        print("\n Lexical Chain Generated => Saved in LexicalChain.txt")
+
 
     def getRelations(self,tokens):
-
-        # relations = defaultdict(list)
         
         relations = {}
 
@@ -42,64 +49,8 @@ class LexicalChain:
 
             relations[tok] = r
 
-        self.WriteToDisk(relations,"relations")
-
-        # print("hello")
         return relations
         
-
-    # def constructLexicalChains(self,tokens,relation):
-    #     vocab = []
-        
-    #     threshold = 0.3
-        
-    #     for tok in tokens:
-
-    #         flag = 0
-            
-    #         for chain in vocab:
-
-    #         # for j in range(len(vocab)):
-            
-    #             if flag == 0:
-                    
-    #                 keys = chain.keys()
-
-    #                 for key in keys:
-    #                 # for key in list(vocab[j]):
-            
-    #                     if key == tok and flag == 0:
-    #                         chain[tok] += 1
-    #                         flag = 1
-            
-    #                     elif key in relation[tok] and flag == 0:
-    #                         syns1 = wordnet.synsets(key)
-    #                         syns2 = wordnet.synsets(tok)
-                            
-    #                         if syns1[0].wup_similarity(syns2[0]) >= threshold:
-    #                             chain[tok] = 1
-    #                             flag = 1
-            
-    #                     elif tok in relation[key] and flag == 0:
-    #                         syns1 = wordnet.synsets(key)
-    #                         syns2 = wordnet.synsets(tok)
-                            
-    #                         if syns1[0].wup_similarity(syns2[0]) >= threshold:
-    #                             chain[tok] = 1
-    #                             flag = 1
-            
-    #         # Initialize a new chain with the token because it does not belong to any other present chain 
-    #         if flag == 0: 
-                
-    #             dic = {}
-    #             dic[tok] = 1
-    #             vocab.append(dic)
-
-    #             # print(vocab)
-
-    #             flag = 1
-
-    #     return vocab
 
     def constructLexicalChains(self,tokens,relations):
 
@@ -145,13 +96,11 @@ class LexicalChain:
                 newChain = { tok : 1 }
                 chains.append(newChain)
 
-                # print(chains)
-
         return chains
 
 
-    # delete from the list the chains that only have one element and that word is only repeated once.
-    def discardIrrelevant(self,vocab):
+    # delete from the list the chains that only have one element or that word is only repeated once.
+    def discard_irrelevant_chains(self,vocab):
 
         chain = []
 
@@ -171,26 +120,18 @@ class LexicalChain:
         return chain 
 
 
-    def POS_tagging(self):
+    def traverseDocs(self):
         
         docNo = [*self.documents.keys()]
 
+        #Build lexical Chains for all docs in the training set
         for no in docNo:
-
-            # tokens.clear()
-
-            # words = self.documents[no]
-            # tagged = nltk.pos_tag(words)
-
-            # for (tok, tag) in tagged:
-            #     if (tag == "NNP" or tag == "NN" or tag == "NNS" or tag == "NNPS") and (tok not in tokens):
-            #         tokens.append(tok)
             
-            # print(tokens)
-            # print(no)
             relation = self.getRelations(self.documents[no])
+
             lexical = self.constructLexicalChains(self.documents[no],relation)
-            chain = self.discardIrrelevant(lexical)
+            
+            chain = self.discard_irrelevant_chains(lexical)
 
             keys = list(set().union(*(d.keys() for d in chain)))
 
@@ -210,6 +151,3 @@ class LexicalChain:
             index = json.loads(filehandle.read())
 
         return index
-
-
-# l = LexicalChain()
